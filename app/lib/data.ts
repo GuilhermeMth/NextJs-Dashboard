@@ -33,11 +33,17 @@ export async function fetchRevenue() {
 export async function fetchLatestInvoices() {
   try {
     const data = await sql<LatestInvoiceRaw[]>`
-      SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
+      SELECT DISTINCT ON (customers.id)
+        invoices.amount,
+        customers.name,
+        customers.image_url,
+        customers.email,
+        invoices.id
       FROM invoices
       JOIN customers ON invoices.customer_id = customers.id
-      ORDER BY invoices.date DESC
-      LIMIT 5`;
+      ORDER BY customers.id, invoices.date DESC
+      LIMIT 5
+    `;
 
     const latestInvoices = data.map((invoice) => ({
       ...invoice,
